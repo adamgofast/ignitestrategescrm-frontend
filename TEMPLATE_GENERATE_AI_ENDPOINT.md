@@ -22,6 +22,7 @@ The response **MUST** match the template model structure:
 
 ```json
 {
+  "title": "Template title",
   "subject": "Email subject line",
   "body": "Email body content with {{variables}} like {{firstName}}, {{lastName}}, etc."
 }
@@ -30,6 +31,9 @@ The response **MUST** match the template model structure:
 ### Required Fields:
 - **`subject`** (string): Email subject line
 - **`body`** (string): Email body content that should contain variables like `{{firstName}}`, `{{lastName}}`, `{{companyName}}`, etc.
+
+### Optional Fields:
+- **`title`** (string): Template title (optional)
 
 ### Key Points:
 - **NO `success` field** - Just return the template structure directly

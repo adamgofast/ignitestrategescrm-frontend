@@ -6,6 +6,7 @@ The backend endpoint `POST /api/templates/generate-ai` **MUST** return this stru
 
 ```json
 {
+  "title": "Template title",
   "subject": "Email subject line",
   "body": "Email body with {{variables}}"
 }
@@ -14,6 +15,9 @@ The backend endpoint `POST /api/templates/generate-ai` **MUST** return this stru
 ### Required Fields:
 - **`subject`** (string): Email subject line
 - **`body`** (string): Email body content that should contain variables like `{{firstName}}`, `{{lastName}}`, `{{companyName}}`, etc.
+
+### Optional Fields:
+- **`title`** (string): Template title
 
 ### Key Points:
 - **NO `success` field** - Just return `{ subject, body }` directly

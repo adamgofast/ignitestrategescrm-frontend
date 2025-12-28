@@ -12,6 +12,7 @@ export default function ComposeMessage() {
   const [templates, setTemplates] = useState([]);
   const [contactLists, setContactLists] = useState([]);
   const [composeData, setComposeData] = useState({
+    title: "",
     subject: "",
     body: "",
     variables: {}
@@ -58,8 +59,9 @@ export default function ComposeMessage() {
   const handleTemplateSelect = (template) => {
     setSelectedTemplate(template);
     setComposeData({
-      subject: template.subject,
-      body: template.body,
+      title: template.title || template.name || "",
+      subject: template.subject || "",
+      body: template.body || "",
       variables: {}
     });
     setStep(2);
@@ -81,24 +83,22 @@ export default function ComposeMessage() {
     // Get the current template content as context, or use the selected template
     const currentBody = composeData.body || selectedTemplate?.body || "";
     const currentSubject = composeData.subject || selectedTemplate?.subject || "";
+    const currentTitle = composeData.title || selectedTemplate?.title || selectedTemplate?.name || "";
     
-    if (!currentBody.trim() && !currentSubject.trim()) {
-      alert("Please enter some content or select a template first to generate from");
-      return;
-    }
-
     setGeneratingAI(true);
     try {
       console.log("Calling AI generation endpoint...", {
+        title: currentTitle,
         subject: currentSubject,
         body: currentBody,
         templateId: selectedTemplate?._id,
       });
       
-      // Call AI generation endpoint - following blog pattern
+      // Call AI generation endpoint - following blog pattern exactly
       // This should generate content with variables like {{firstName}}
       // Note: baseURL already includes /api, so just use /templates/generate-ai
       const response = await api.post("/templates/generate-ai", {
+        title: currentTitle,
         subject: currentSubject,
         body: currentBody,
         templateId: selectedTemplate?._id,
@@ -106,11 +106,12 @@ export default function ComposeMessage() {
 
       console.log("AI generation response:", response.data);
 
-      // Response should match template model structure: { subject, body }
+      // Response should match template model structure: { title, subject, body }
       // Body should contain variables like {{firstName}}, {{lastName}}, etc.
       if (response.data?.subject || response.data?.body) {
         setComposeData(prev => ({
           ...prev,
+          title: response.data.title || prev.title || "",
           subject: response.data.subject || prev.subject,
           body: response.data.body || prev.body,
         }));
@@ -345,6 +346,19 @@ export default function ComposeMessage() {
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Title
+                  </label>
+                  <input
+                    type="text"
+                    value={composeData.title}
+                    onChange={(e) => handleComposeChange("title", e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                    placeholder="Template title (optional)"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Subject Line
                   </label>
                   <input
@@ -434,6 +448,9 @@ export default function ComposeMessage() {
                 <h3 className="font-semibold text-gray-900 mb-4">Email Preview:</h3>
                 <div className="bg-white border border-gray-200 rounded p-4">
                   <p className="text-sm text-gray-600 mb-2">To: {selectedList?.totalContacts} contacts</p>
+                  {composeData.title && (
+                    <p className="text-sm font-medium text-gray-700 mb-1">Title: {composeData.title}</p>
+                  )}
                   <p className="font-semibold mb-2">Subject: {composeData.subject}</p>
                   <div 
                     className="prose max-w-none"
