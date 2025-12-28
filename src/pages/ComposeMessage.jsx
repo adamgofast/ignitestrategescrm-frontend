@@ -84,12 +84,20 @@ export default function ComposeMessage() {
       const currentBody = composeData.body || selectedTemplate?.body || "";
       const currentSubject = composeData.subject || selectedTemplate?.subject || "";
       
+      console.log("Calling AI generation endpoint...", {
+        subject: currentSubject,
+        body: currentBody,
+        templateId: selectedTemplate?._id,
+      });
+      
       // Call AI generation endpoint - this should generate content with variables like {{firstName}}
       const response = await api.post("/templates/generate-ai", {
         subject: currentSubject,
         body: currentBody,
         templateId: selectedTemplate?._id,
       });
+
+      console.log("AI generation response:", response.data);
 
       // Response should match template model structure: { subject, body }
       // Body should contain variables like {{firstName}}, {{lastName}}, etc.
@@ -100,11 +108,17 @@ export default function ComposeMessage() {
           body: response.data.body || prev.body,
         }));
       } else {
+        console.error("Invalid response format:", response.data);
         alert("Failed to generate template - missing subject or body");
       }
     } catch (error) {
       console.error("Error generating with AI:", error);
-      alert("Error generating template with AI: " + (error.response?.data?.error || error.message));
+      console.error("Error details:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+      alert("Error generating template with AI: " + (error.response?.data?.error || error.message || "Unknown error"));
     } finally {
       setGeneratingAI(false);
     }
@@ -340,7 +354,11 @@ export default function ComposeMessage() {
                       Message Body
                     </label>
                     <button
-                      onClick={handleGenerateWithAI}
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleGenerateWithAI();
+                      }}
                       disabled={generatingAI}
                       className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium flex items-center gap-2"
                     >
