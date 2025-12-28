@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Home from "./pages/Home.jsx";
 import Welcome from "./pages/Welcome.jsx";
@@ -25,9 +26,15 @@ import ComposeMessage from "./pages/ComposeMessage.jsx";
 import ListManagement from "./pages/ListManagement.jsx";
 import TestAuth from "./pages/TestAuth.jsx";
 
-// Protected Route - simple localStorage check
+// Protected Route - uses state initialized immediately to prevent flicker
 function ProtectedRoute({ children }) {
-  const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
+  const [isAuthenticated] = useState(() => {
+    // Initialize from localStorage immediately on first render
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem("isAuthenticated") === "true";
+    }
+    return false;
+  });
   
   if (!isAuthenticated) {
     return <Navigate to="/" replace />;
@@ -37,8 +44,18 @@ function ProtectedRoute({ children }) {
 }
 
 export default function App() {
-  const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
-  const orgId = localStorage.getItem("orgId");
+  const [authState, setAuthState] = useState(() => {
+    // Initialize from localStorage immediately on first render
+    if (typeof window !== 'undefined') {
+      return {
+        isAuthenticated: localStorage.getItem("isAuthenticated") === "true",
+        orgId: localStorage.getItem("orgId")
+      };
+    }
+    return { isAuthenticated: false, orgId: null };
+  });
+
+  const { isAuthenticated, orgId } = authState;
 
   return (
     <BrowserRouter>
