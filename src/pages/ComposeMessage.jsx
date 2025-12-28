@@ -78,19 +78,26 @@ export default function ComposeMessage() {
   };
 
   const handleGenerateWithAI = async () => {
+    // Get the current template content as context, or use the selected template
+    const currentBody = composeData.body || selectedTemplate?.body || "";
+    const currentSubject = composeData.subject || selectedTemplate?.subject || "";
+    
+    if (!currentBody.trim() && !currentSubject.trim()) {
+      alert("Please enter some content or select a template first to generate from");
+      return;
+    }
+
     setGeneratingAI(true);
     try {
-      // Get the current template content as context, or use the selected template
-      const currentBody = composeData.body || selectedTemplate?.body || "";
-      const currentSubject = composeData.subject || selectedTemplate?.subject || "";
-      
       console.log("Calling AI generation endpoint...", {
         subject: currentSubject,
         body: currentBody,
         templateId: selectedTemplate?._id,
       });
       
-      // Call AI generation endpoint - this should generate content with variables like {{firstName}}
+      // Call AI generation endpoint - following blog pattern
+      // This should generate content with variables like {{firstName}}
+      // Note: baseURL already includes /api, so just use /templates/generate-ai
       const response = await api.post("/templates/generate-ai", {
         subject: currentSubject,
         body: currentBody,
@@ -117,6 +124,7 @@ export default function ComposeMessage() {
         message: error.message,
         response: error.response?.data,
         status: error.response?.status,
+        url: error.config?.url,
       });
       alert("Error generating template with AI: " + (error.response?.data?.error || error.message || "Unknown error"));
     } finally {
