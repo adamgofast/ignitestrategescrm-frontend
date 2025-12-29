@@ -18,7 +18,6 @@ export default function ComposeMessage() {
     variables: {}
   });
   const [loading, setLoading] = useState(false);
-  const [generatingAI, setGeneratingAI] = useState(false);
   const [gmailAuthenticated, setGmailAuthenticated] = useState(false);
   const [userEmail, setUserEmail] = useState("");
 
@@ -79,58 +78,6 @@ export default function ComposeMessage() {
     }));
   };
 
-  const handleGenerateWithAI = async (e) => {
-    // Stop any event propagation
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    
-    // Get the current template content as context, or use the selected template
-    const currentBody = composeData.body || selectedTemplate?.body || "";
-    const currentSubject = composeData.subject || selectedTemplate?.subject || "";
-    const currentTitle = composeData.title || selectedTemplate?.title || selectedTemplate?.name || "";
-    
-    setGeneratingAI(true);
-    try {
-      // Call AI generation endpoint - this generates { title, subject, body }
-      // Note: baseURL already includes /api, so just use /templates/generate-ai
-      const response = await api.post("/templates/generate-ai", {
-        title: currentTitle,
-        subject: currentSubject,
-        body: currentBody,
-        templateId: selectedTemplate?._id,
-      });
-
-      // Response should match template model structure: { title, subject, body }
-      if (response.data?.subject && response.data?.body) {
-        // Navigate to template builder with generated data pre-filled
-        const generated = response.data;
-        const params = new URLSearchParams({
-          title: generated.title || '',
-          subject: generated.subject || '',
-          body: generated.body || '',
-        });
-        
-        // Navigate to template builder page (this is in the Next.js app)
-        window.location.href = `/builder/template/new?${params.toString()}`;
-      } else {
-        console.error("Invalid response format:", response.data);
-        alert("Failed to generate template - missing subject or body");
-        setGeneratingAI(false);
-      }
-    } catch (error) {
-      console.error("Error generating with AI:", error);
-      console.error("Error details:", {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-        url: error.config?.url,
-      });
-      alert("Error generating template with AI: " + (error.response?.data?.error || error.message || "Unknown error"));
-      setGeneratingAI(false);
-    }
-  };
 
   const handleGmailAuth = async () => {
     try {
@@ -370,37 +317,9 @@ export default function ComposeMessage() {
                 </div>
 
                 <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Message Body
-                    </label>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handleGenerateWithAI(e);
-                      }}
-                      disabled={generatingAI}
-                      className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium flex items-center gap-2"
-                    >
-                      {generatingAI ? (
-                        <>
-                          <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          Generating...
-                        </>
-                      ) : (
-                        <>
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                          </svg>
-                          Generate with AI
-                        </>
-                      )}
-                    </button>
-                  </div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Message Body
+                  </label>
                   <textarea
                     rows={12}
                     value={composeData.body}
