@@ -80,22 +80,31 @@ export default function ComposeMessage() {
   };
 
   const handleGenerateWithAI = async (e) => {
-    // Stop any event propagation
+    // AGGRESSIVELY stop any event propagation to prevent navigation
     if (e) {
       e.preventDefault();
       e.stopPropagation();
+      if (e.nativeEvent) {
+        e.nativeEvent.stopImmediatePropagation();
+      }
     }
+    
+    console.log("🔵🔵🔵 handleGenerateWithAI CALLED - THIS SHOULD NOT NAVIGATE");
     
     // Get the current template content as context, or use the selected template
     const currentBody = composeData.body || selectedTemplate?.body || "";
     const currentSubject = composeData.subject || selectedTemplate?.subject || "";
     const currentTitle = composeData.title || selectedTemplate?.title || selectedTemplate?.name || "";
     
-    console.log("🔵 handleGenerateWithAI called - starting generation");
+    console.log("🔵 Starting AI generation with:", {
+      currentTitle,
+      currentSubject,
+      currentBody,
+    });
     
     setGeneratingAI(true);
     try {
-      console.log("Calling AI generation endpoint...", {
+      console.log("📡 Calling AI generation endpoint...", {
         title: currentTitle,
         subject: currentSubject,
         body: currentBody,
