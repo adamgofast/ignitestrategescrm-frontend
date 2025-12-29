@@ -79,11 +79,19 @@ export default function ComposeMessage() {
     }));
   };
 
-  const handleGenerateWithAI = async () => {
+  const handleGenerateWithAI = async (e) => {
+    // Stop any event propagation
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
     // Get the current template content as context, or use the selected template
     const currentBody = composeData.body || selectedTemplate?.body || "";
     const currentSubject = composeData.subject || selectedTemplate?.subject || "";
     const currentTitle = composeData.title || selectedTemplate?.title || selectedTemplate?.name || "";
+    
+    console.log("🔵 handleGenerateWithAI called - starting generation");
     
     setGeneratingAI(true);
     try {
@@ -379,7 +387,12 @@ export default function ComposeMessage() {
                       type="button"
                       onClick={(e) => {
                         e.preventDefault();
-                        handleGenerateWithAI();
+                        e.stopPropagation();
+                        if (e.nativeEvent) {
+                          e.nativeEvent.stopImmediatePropagation();
+                        }
+                        handleGenerateWithAI(e);
+                        return false;
                       }}
                       disabled={generatingAI}
                       className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium flex items-center gap-2"
